@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Study Tool</title>
+</head>
+<body style="text-align:center; font-family:Arial;">
+
+<h2>📚 AI Study Tool</h2>
+
+<input type="text" id="token" placeholder="Enter Token"><br><br>
+
+<input type="file" id="file"><br><br>
+
+<button onclick="upload()">Generate PDF</button>
+<br><br>
+
+<button onclick="payNow()">💳 Pay ₹29</button>
+
+<p id="status"></p>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+async function upload() {
+
+    let token = document.getElementById("token").value;
+    let file = document.getElementById("file").files[0];
+
+    if (!file || !token) {
+        alert("File aur token dono required hai");
+        return;
+    }
+
+    let formData = new FormData();
+    formData.append("file", file);
+
+    let res = await fetch("http://127.0.0.1:8000/upload", {
+        method: "POST",
+        headers: {
+            "token": token
+        },
+        body: formData
+    });
+
+    let blob = await res.blob();
+
+    let url = window.URL.createObjectURL(blob);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "notes.pdf";
+    a.click();
+}
+
+async function payNow() {
+
+    let res = await fetch("http://127.0.0.1:8000/create-order", {
+        method: "POST"
+    });
+
+    let order = await res.json();
+
+    var options = {
+        "key": "rzp_test_STXYkGXEsjoOlw",
+        "amount": order.amount,
+        "currency": "INR",
+        "name": "AI Study Tool",
+        "description": "Exam Notes",
+        "order_id": order.id,
+        "handler": async function (response) {
+
+            let verify = await fetch("http://127.0.0.1:8000/verify-payment", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(response)
+            });
+
+            let data = await verify.json();
+
+            if (data.status === "success") {
+                alert("✅ Payment Success!\nYour Token: " + data.token);
+            } else {
+                alert("❌ Payment Failed");
+            }
+        }
+    };
+
+    var rzp = new Razorpay(options);
+    rzp.open();
+}
+</script>
+
+</body>
+</html>

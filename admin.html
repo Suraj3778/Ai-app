@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<body style="text-align:center; font-family:Arial;">
+
+<h2>📊 Admin Dashboard</h2>
+
+<button onclick="load()">Load Stats</button>
+
+<h3 id="users"></h3>
+<h3 id="paid"></h3>
+
+<script>
+async function load() {
+    let res = await fetch("http://127.0.0.1:8000/admin/stats");
+    let data = await res.json();
+
+    document.getElementById("users").innerText = "Total Users: " + data.total_users;
+    document.getElementById("paid").innerText = "Paid Users: " + data.total_paid_users;
+}
+</script>
+
+</body>
+</html>
