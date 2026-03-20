@@ -13,10 +13,11 @@
         /* NAVBAR */
         .navbar {
             background: #667eea;
-            padding: 15px;
+            padding: 15px 30px;
             color: white;
             display: flex;
             justify-content: space-between;
+            align-items: center;
         }
 
         .nav-buttons button {
@@ -46,17 +47,22 @@
         }
 
         .hero h1 {
-            font-size: 32px;
+            font-size: 36px;
+        }
+
+        .hero p {
+            font-size: 18px;
         }
 
         .hero button {
             margin-top: 20px;
-            padding: 12px 20px;
+            padding: 14px 24px;
             border: none;
             background: #28a745;
             color: white;
             border-radius: 6px;
             cursor: pointer;
+            font-size: 16px;
         }
 
         /* FEATURES */
@@ -64,31 +70,51 @@
             display: flex;
             justify-content: center;
             gap: 20px;
-            padding: 50px;
+            padding: 60px;
+            flex-wrap: wrap;
         }
 
         .feature-box {
             background: white;
-            padding: 20px;
-            width: 200px;
+            padding: 25px;
+            width: 220px;
             text-align: center;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: 0.3s;
         }
 
-        /* APP SECTION */
+        .feature-box:hover {
+            transform: translateY(-5px);
+        }
+
+        /* TESTIMONIAL */
+        .testimonials {
+            text-align: center;
+            padding: 50px;
+            background: #fff;
+        }
+
+        .testimonial {
+            margin-top: 20px;
+            font-style: italic;
+            color: #555;
+        }
+
+        /* APP */
         .app {
             display: flex;
             justify-content: center;
-            margin: 50px 0;
+            margin: 60px 0;
         }
 
         .card {
             background: white;
             padding: 30px;
             width: 350px;
-            border-radius: 10px;
+            border-radius: 12px;
             text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
 
         input, button {
@@ -111,6 +137,14 @@
         .pay {
             background: #28a745;
         }
+
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #667eea;
+            color: white;
+        }
     </style>
 </head>
 
@@ -127,22 +161,24 @@
 
 <!-- HERO -->
 <div class="hero">
-    <h1>Turn Your Notes into Exam Ready PDF</h1>
-    <p>AI-powered tool to help you pass exams faster</p>
+    <h1>Pass Exams Faster with AI</h1>
+    <p>Upload notes → Get important questions & revision PDF instantly</p>
     <button onclick="scrollToApp()">Start Now</button>
 </div>
 
 <!-- FEATURES -->
 <div class="features">
-    <div class="feature-box">
-        ⚡ Instant PDF
-    </div>
-    <div class="feature-box">
-        🎯 Exam Focused
-    </div>
-    <div class="feature-box">
-        🤖 AI Powered
-    </div>
+    <div class="feature-box">⚡ Instant PDF</div>
+    <div class="feature-box">🎯 Exam Focused</div>
+    <div class="feature-box">🤖 AI Powered</div>
+    <div class="feature-box">📚 Smart Revision</div>
+</div>
+
+<!-- TESTIMONIAL -->
+<div class="testimonials">
+    <h2>Students Love It ❤️</h2>
+    <div class="testimonial">"Bhai isse padh ke pass ho gaya 🔥"</div>
+    <div class="testimonial">"Last day me life saver tha"</div>
 </div>
 
 <!-- APP -->
@@ -156,6 +192,11 @@
 
         <button class="pay" onclick="payNow()">💳 Pay ₹29</button>
     </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    © 2026 AI Study Tool | Made for Students 🚀
 </div>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
