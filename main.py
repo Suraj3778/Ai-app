@@ -6,6 +6,7 @@ import io
 import random
 import string
 import hashlib
+import os
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
@@ -46,8 +47,8 @@ class Token(Base):
 Base.metadata.create_all(bind=engine)
 
 # ---------------- RAZORPAY ----------------
-RAZORPAY_KEY_ID = "rzp_test_STXYkGXEsjoOlw"
-RAZORPAY_SECRET = "BzbxKlVdnAxDTLAX47p0Qae4"
+RAZORPAY_KEY_ID = os.getenv("rzp_test_STXYkGXEsjoOlw")
+RAZORPAY_SECRET = os.getenv("BzbxKlVdnAxDTLAX47p0Qae4")
 
 client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_SECRET))
 

@@ -2,42 +2,88 @@
 <html>
 <head>
     <title>AI Study Tool</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            width: 350px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: none;
+        }
+
+        input {
+            background: #f1f1f1;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+        }
+
+        .pay {
+            background: #28a745;
+        }
+    </style>
 </head>
-<body style="text-align:center; font-family:Arial;">
 
-<h2>📚 AI Study Tool</h2>
+<body>
 
-<input type="text" id="token" placeholder="Enter Token"><br><br>
+<div class="card">
+    <h2>📚 AI Study Tool</h2>
+    <p>Generate exam-ready notes instantly</p>
 
-<input type="file" id="file"><br><br>
+    <input type="text" id="userId" placeholder="Enter User ID">
 
-<button onclick="upload()">Generate PDF</button>
-<br><br>
+    <input type="file" id="file">
 
-<button onclick="payNow()">💳 Pay ₹29</button>
+    <button onclick="upload()">Generate PDF</button>
 
-<p id="status"></p>
+    <button class="pay" onclick="payNow()">💳 Pay ₹29</button>
+</div>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
+const BASE_URL = "https://ai-app-production-170c.up.railway.app";
+
 async function upload() {
 
-    let token = document.getElementById("token").value;
+    let userId = document.getElementById("userId").value;
     let file = document.getElementById("file").files[0];
 
-    if (!file || !token) {
-        alert("File aur token dono required hai");
+    if (!file || !userId) {
+        alert("User ID aur file required hai");
         return;
     }
 
     let formData = new FormData();
     formData.append("file", file);
 
-    let res = await fetch("http://127.0.0.1:8000/upload", {
+    let res = await fetch(BASE_URL + "/upload", {
         method: "POST",
         headers: {
-            "token": token
+            "user_id": userId
         },
         body: formData
     });
@@ -53,7 +99,14 @@ async function upload() {
 
 async function payNow() {
 
-    let res = await fetch("http://127.0.0.1:8000/create-order", {
+    let userId = document.getElementById("userId").value;
+
+    if (!userId) {
+        alert("User ID enter karo");
+        return;
+    }
+
+    let res = await fetch(BASE_URL + "/create-order", {
         method: "POST"
     });
 
@@ -64,20 +117,22 @@ async function payNow() {
         "amount": order.amount,
         "currency": "INR",
         "name": "AI Study Tool",
-        "description": "Exam Notes",
         "order_id": order.id,
         "handler": async function (response) {
 
-            let verify = await fetch("http://127.0.0.1:8000/verify-payment", {
+            let verify = await fetch(BASE_URL + "/verify-payment", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(response)
+                body: JSON.stringify({
+                    ...response,
+                    user_id: userId
+                })
             });
 
             let data = await verify.json();
 
             if (data.status === "success") {
-                alert("✅ Payment Success!\nYour Token: " + data.token);
+                alert("✅ Payment Success!");
             } else {
                 alert("❌ Payment Failed");
             }
