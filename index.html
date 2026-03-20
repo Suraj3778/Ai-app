@@ -17,12 +17,6 @@
             color: white;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 18px;
-            font-weight: bold;
         }
 
         .nav-buttons button {
@@ -43,11 +37,50 @@
             color: white;
         }
 
-        /* MAIN */
-        .container {
+        /* HERO */
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 32px;
+        }
+
+        .hero button {
+            margin-top: 20px;
+            padding: 12px 20px;
+            border: none;
+            background: #28a745;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* FEATURES */
+        .features {
             display: flex;
             justify-content: center;
-            margin-top: 80px;
+            gap: 20px;
+            padding: 50px;
+        }
+
+        .feature-box {
+            background: white;
+            padding: 20px;
+            width: 200px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* APP SECTION */
+        .app {
+            display: flex;
+            justify-content: center;
+            margin: 50px 0;
         }
 
         .card {
@@ -56,7 +89,6 @@
             width: 350px;
             border-radius: 10px;
             text-align: center;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
 
         input, button {
@@ -79,12 +111,6 @@
         .pay {
             background: #28a745;
         }
-
-        .footer {
-            margin-top: 15px;
-            font-size: 12px;
-            color: gray;
-        }
     </style>
 </head>
 
@@ -92,30 +118,44 @@
 
 <!-- NAVBAR -->
 <div class="navbar">
-    <div class="logo">📚 AI Study Tool</div>
-
+    <div>📚 AI Study Tool</div>
     <div class="nav-buttons">
         <button class="login-btn" onclick="login()">Login</button>
         <button class="register-btn" onclick="register()">Register</button>
     </div>
 </div>
 
-<!-- MAIN -->
-<div class="container">
+<!-- HERO -->
+<div class="hero">
+    <h1>Turn Your Notes into Exam Ready PDF</h1>
+    <p>AI-powered tool to help you pass exams faster</p>
+    <button onclick="scrollToApp()">Start Now</button>
+</div>
 
+<!-- FEATURES -->
+<div class="features">
+    <div class="feature-box">
+        ⚡ Instant PDF
+    </div>
+    <div class="feature-box">
+        🎯 Exam Focused
+    </div>
+    <div class="feature-box">
+        🤖 AI Powered
+    </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
     <div class="card">
         <h2>Generate Notes</h2>
-        <p>Upload file → Get exam-ready PDF</p>
 
         <input type="file" id="file">
 
         <button onclick="upload()">Generate PDF</button>
 
         <button class="pay" onclick="payNow()">💳 Pay ₹29</button>
-
-        <div class="footer">⚡ Instant | 🎯 Exam Focused</div>
     </div>
-
 </div>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -123,6 +163,10 @@
 <script>
 
 const BASE_URL = "https://ai-app-production-170c.up.railway.app";
+
+function scrollToApp() {
+    document.getElementById("app").scrollIntoView({behavior: "smooth"});
+}
 
 function saveUser(id) {
     localStorage.setItem("user_id", id);
@@ -132,7 +176,6 @@ function getUser() {
     return localStorage.getItem("user_id");
 }
 
-// REGISTER
 async function register() {
     let email = prompt("Email");
     let password = prompt("Password");
@@ -146,7 +189,6 @@ async function register() {
     alert("Registered! Now login");
 }
 
-// LOGIN
 async function login() {
     let email = prompt("Email");
     let password = prompt("Password");
@@ -167,7 +209,6 @@ async function login() {
     }
 }
 
-// UPLOAD
 async function upload() {
 
     let userId = getUser();
@@ -178,11 +219,6 @@ async function upload() {
     }
 
     let file = document.getElementById("file").files[0];
-
-    if (!file) {
-        alert("File select karo");
-        return;
-    }
 
     let formData = new FormData();
     formData.append("file", file);
@@ -202,7 +238,6 @@ async function upload() {
     a.click();
 }
 
-// PAYMENT
 async function payNow() {
 
     let userId = getUser();
