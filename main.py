@@ -188,11 +188,21 @@ REVISION POINTS:
     )
 
 # 📊 ADMIN
+# ---------------- ADMIN ----------------
 @app.get("/admin/stats")
 def admin_stats():
+
     db = SessionLocal()
 
+    total_users = db.query(User).count()
+    paid_users = db.query(Token).count()
+
+    revenue = paid_users * 29  # ₹29 per user
+
+    db.close()
+
     return {
-        "total_users": db.query(User).count(),
-        "paid_users": db.query(Token).count()
+        "total_users": total_users,
+        "paid_users": paid_users,
+        "revenue": revenue
     }

@@ -1,22 +1,102 @@
 <!DOCTYPE html>
 <html>
-<body style="text-align:center; font-family:Arial;">
+<head>
+    <title>Admin Dashboard</title>
 
-<h2>📊 Admin Dashboard</h2>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            margin: 0;
+        }
 
-<button onclick="load()">Load Stats</button>
+        .header {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
 
-<h3 id="users"></h3>
-<h3 id="paid"></h3>
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 50px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            width: 220px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .number {
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h2>📊 Admin Dashboard</h2>
+</div>
+
+<button class="btn" onclick="loadData()">Refresh Data</button>
+
+<div class="container">
+
+    <div class="card">
+        <div>Total Users</div>
+        <div class="number" id="users">0</div>
+    </div>
+
+    <div class="card">
+        <div>Paid Users</div>
+        <div class="number" id="paid">0</div>
+    </div>
+
+    <div class="card">
+        <div>Revenue</div>
+        <div class="number" id="revenue">₹0</div>
+    </div>
+
+</div>
 
 <script>
-async function load() {
-    let res = await fetch("http://127.0.0.1:8000/admin/stats");
+
+const BASE_URL = "https://ai-app-production-170c.up.railway.app";
+
+async function loadData() {
+
+    let res = await fetch(BASE_URL + "/admin/stats");
     let data = await res.json();
 
-    document.getElementById("users").innerText = "Total Users: " + data.total_users;
-    document.getElementById("paid").innerText = "Paid Users: " + data.total_paid_users;
+    document.getElementById("users").innerText = data.total_users;
+    document.getElementById("paid").innerText = data.paid_users;
+    document.getElementById("revenue").innerText = "₹" + data.revenue;
 }
+
+// auto load
+loadData();
+
 </script>
 
 </body>
