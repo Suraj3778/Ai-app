@@ -44,6 +44,12 @@
         .pay {
             background: #28a745;
         }
+
+        .small {
+            font-size: 12px;
+            color: gray;
+            margin-top: 10px;
+        }
     </style>
 </head>
 
@@ -51,15 +57,18 @@
 
 <div class="card">
     <h2>📚 AI Study Tool</h2>
-    <p>Generate exam-ready notes instantly</p>
-
-    <input type="text" id="userId" placeholder="Enter User ID">
+    <p>Exam-ready notes in seconds</p>
 
     <input type="file" id="file">
 
     <button onclick="upload()">Generate PDF</button>
 
-    <button class="pay" onclick="payNow()">💳 Pay ₹29</button>
+    <button class="pay" onclick="payNow()">💳 Unlock (₹29)</button>
+
+    <button onclick="login()">Login</button>
+    <button onclick="register()">Register</button>
+
+    <div class="small">⚡ Instant | 🎯 Smart Notes</div>
 </div>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -67,13 +76,72 @@
 <script>
 const BASE_URL = "https://ai-app-production-170c.up.railway.app";
 
+// -------- USER STORAGE --------
+function saveUser(id) {
+    localStorage.setItem("user_id", id);
+}
+
+function getUser() {
+    return localStorage.getItem("user_id");
+}
+
+// -------- REGISTER --------
+async function register() {
+
+    let email = prompt("Enter Email");
+    let password = prompt("Enter Password");
+
+    let res = await fetch(BASE_URL + "/register", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({email, password})
+    });
+
+    let data = await res.json();
+
+    if (data.status === "registered") {
+        alert("Registered! Now login");
+    } else {
+        alert("User already exists");
+    }
+}
+
+// -------- LOGIN --------
+async function login() {
+
+    let email = prompt("Enter Email");
+    let password = prompt("Enter Password");
+
+    let res = await fetch(BASE_URL + "/login", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({email, password})
+    });
+
+    let data = await res.json();
+
+    if (data.status === "success") {
+        saveUser(data.user_id);
+        alert("Login Success");
+    } else {
+        alert("Login Failed");
+    }
+}
+
+// -------- UPLOAD --------
 async function upload() {
 
-    let userId = document.getElementById("userId").value;
+    let userId = getUser();
+
+    if (!userId) {
+        alert("Pehle login karo");
+        return;
+    }
+
     let file = document.getElementById("file").files[0];
 
-    if (!file || !userId) {
-        alert("User ID aur file required hai");
+    if (!file) {
+        alert("File select karo");
         return;
     }
 
@@ -97,12 +165,13 @@ async function upload() {
     a.click();
 }
 
+// -------- PAYMENT --------
 async function payNow() {
 
-    let userId = document.getElementById("userId").value;
+    let userId = getUser();
 
     if (!userId) {
-        alert("User ID enter karo");
+        alert("Login karo pehle");
         return;
     }
 
@@ -120,7 +189,7 @@ async function payNow() {
         "order_id": order.id,
         "handler": async function (response) {
 
-            let verify = await fetch(BASE_URL + "/verify-payment", {
+            await fetch(BASE_URL + "/verify-payment", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
@@ -129,13 +198,7 @@ async function payNow() {
                 })
             });
 
-            let data = await verify.json();
-
-            if (data.status === "success") {
-                alert("✅ Payment Success!");
-            } else {
-                alert("❌ Payment Failed");
-            }
+            alert("✅ Payment Success! Now upload file");
         }
     };
 
