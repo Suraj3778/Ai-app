@@ -7,36 +7,63 @@
         body {
             margin: 0;
             font-family: Arial;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            height: 100vh;
+            background: #f4f6f9;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background: #667eea;
+            padding: 15px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .nav-buttons button {
+            margin-left: 10px;
+            padding: 8px 12px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .login-btn {
+            background: white;
+            color: #667eea;
+        }
+
+        .register-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        /* MAIN */
+        .container {
             display: flex;
             justify-content: center;
-            align-items: center;
+            margin-top: 80px;
         }
 
         .card {
             background: white;
             padding: 30px;
             width: 350px;
-            border-radius: 12px;
+            border-radius: 10px;
             text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-
-        h2 {
-            margin-bottom: 5px;
-        }
-
-        p {
-            color: gray;
-            font-size: 14px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
 
         input, button {
             width: 100%;
             padding: 12px;
             margin-top: 10px;
-            border-radius: 8px;
+            border-radius: 6px;
             border: none;
         }
 
@@ -47,40 +74,47 @@
         button {
             background: #667eea;
             color: white;
-            cursor: pointer;
         }
 
         .pay {
             background: #28a745;
         }
 
-        .small {
+        .footer {
+            margin-top: 15px;
             font-size: 12px;
             color: gray;
-            margin-top: 10px;
         }
     </style>
 </head>
 
 <body>
 
-<div class="card">
+<!-- NAVBAR -->
+<div class="navbar">
+    <div class="logo">📚 AI Study Tool</div>
 
-    <h2>📚 AI Study Tool</h2>
-    <p>Exam-ready notes instantly</p>
+    <div class="nav-buttons">
+        <button class="login-btn" onclick="login()">Login</button>
+        <button class="register-btn" onclick="register()">Register</button>
+    </div>
+</div>
 
-    <input type="file" id="file">
+<!-- MAIN -->
+<div class="container">
 
-    <button onclick="upload()">Generate PDF</button>
+    <div class="card">
+        <h2>Generate Notes</h2>
+        <p>Upload file → Get exam-ready PDF</p>
 
-    <button class="pay" onclick="payNow()">💳 Unlock (₹29)</button>
+        <input type="file" id="file">
 
-    <button onclick="sendOTP()">Send OTP</button>
-    <button onclick="register()">Register</button>
-    <button onclick="login()">Login</button>
-    <button onclick="forgotPassword()">Forgot Password</button>
+        <button onclick="upload()">Generate PDF</button>
 
-    <div class="small">⚡ AI Powered | 🎯 Exam Focused</div>
+        <button class="pay" onclick="payNow()">💳 Pay ₹29</button>
+
+        <div class="footer">⚡ Instant | 🎯 Exam Focused</div>
+    </div>
 
 </div>
 
@@ -90,7 +124,6 @@
 
 const BASE_URL = "https://ai-app-production-170c.up.railway.app";
 
-// -------- USER STORAGE --------
 function saveUser(id) {
     localStorage.setItem("user_id", id);
 }
@@ -99,50 +132,24 @@ function getUser() {
     return localStorage.getItem("user_id");
 }
 
-// -------- SEND OTP --------
-async function sendOTP() {
-
-    let email = prompt("Enter Email");
-
-    localStorage.setItem("email", email);
-
-    await fetch(BASE_URL + "/send-otp", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({email})
-    });
-
-    alert("OTP sent (check backend console)");
-}
-
-// -------- REGISTER --------
+// REGISTER
 async function register() {
+    let email = prompt("Email");
+    let password = prompt("Password");
 
-    let email = localStorage.getItem("email");
-    let otp = prompt("Enter OTP");
-    let password = prompt("Create Password");
-
-    let res = await fetch(BASE_URL + "/verify-otp-register", {
+    await fetch(BASE_URL + "/register", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({email, otp, password})
+        body: JSON.stringify({email, password})
     });
 
-    let data = await res.json();
-
-    if (data.status === "success") {
-        saveUser(data.user_id);
-        alert("Registered & Logged In");
-    } else {
-        alert("Error: " + data.status);
-    }
+    alert("Registered! Now login");
 }
 
-// -------- LOGIN --------
+// LOGIN
 async function login() {
-
-    let email = prompt("Enter Email");
-    let password = prompt("Enter Password");
+    let email = prompt("Email");
+    let password = prompt("Password");
 
     let res = await fetch(BASE_URL + "/login", {
         method: "POST",
@@ -154,53 +161,19 @@ async function login() {
 
     if (data.status === "success") {
         saveUser(data.user_id);
-        alert("Login Success");
+        alert("Login success");
     } else {
-        alert("Login Failed");
+        alert("Login failed");
     }
 }
 
-// -------- FORGOT PASSWORD --------
-async function forgotPassword() {
-
-    let email = prompt("Enter Email");
-    localStorage.setItem("email", email);
-
-    await fetch(BASE_URL + "/send-otp", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({email})
-    });
-
-    let otp = prompt("Enter OTP");
-    let newPass = prompt("New Password");
-
-    let res = await fetch(BASE_URL + "/reset-password", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            email,
-            otp,
-            new_password: newPass
-        })
-    });
-
-    let data = await res.json();
-
-    if (data.status === "password_updated") {
-        alert("Password Updated");
-    } else {
-        alert("Error");
-    }
-}
-
-// -------- UPLOAD --------
+// UPLOAD
 async function upload() {
 
     let userId = getUser();
 
     if (!userId) {
-        alert("Pehle login karo");
+        alert("Login karo");
         return;
     }
 
@@ -216,14 +189,11 @@ async function upload() {
 
     let res = await fetch(BASE_URL + "/upload", {
         method: "POST",
-        headers: {
-            "user_id": userId
-        },
+        headers: {"user_id": userId},
         body: formData
     });
 
     let blob = await res.blob();
-
     let url = window.URL.createObjectURL(blob);
 
     let a = document.createElement("a");
@@ -232,7 +202,7 @@ async function upload() {
     a.click();
 }
 
-// -------- PAYMENT --------
+// PAYMENT
 async function payNow() {
 
     let userId = getUser();
@@ -252,7 +222,6 @@ async function payNow() {
         "key": "rzp_test_STXYkGXEsjoOlw",
         "amount": order.amount,
         "currency": "INR",
-        "name": "AI Study Tool",
         "order_id": order.id,
         "handler": async function (response) {
 
@@ -265,7 +234,7 @@ async function payNow() {
                 })
             });
 
-            alert("✅ Payment Success! Now upload file");
+            alert("Payment success!");
         }
     };
 

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Header, Body
+from fastapi import FastAPI, UploadFile, File, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import razorpay
@@ -52,9 +52,6 @@ RAZORPAY_SECRET = os.getenv("BzbxKlVdnAxDTLAX47p0Qae4")
 
 client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_SECRET))
 
-# ---------------- OTP STORE ----------------
-OTP_STORE = {}
-
 # ---------------- FUNCTIONS ----------------
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -82,50 +79,28 @@ def create_pdf(text):
 
 @app.get("/")
 def home():
-    return {"status": "Pro SaaS Running 🚀"}
+    return {"status": "Simple SaaS Running 🚀"}
 
-# 🔐 SEND OTP
-@app.post("/send-otp")
-def send_otp(data: dict = Body(...)):
-
-    email = data["email"]
-    otp = str(random.randint(1000, 9999))
-
-    OTP_STORE[email] = otp
-
-    print(f"OTP for {email}: {otp}")
-
-    return {"status": "otp_sent"}
-
-# 🔐 REGISTER WITH OTP
-@app.post("/verify-otp-register")
-def verify_otp_register(data: dict = Body(...)):
-
-    email = data["email"]
-    otp = data["otp"]
-    password = data["password"]
-
-    if OTP_STORE.get(email) != otp:
-        return {"status": "invalid_otp"}
-
+# 🔐 REGISTER
+@app.post("/register")
+def register(data: dict):
     db = SessionLocal()
 
-    existing = db.query(User).filter(User.email == email).first()
+    existing = db.query(User).filter(User.email == data["email"]).first()
     if existing:
         db.close()
         return {"status": "user_exists"}
 
     user = User(
-        email=email,
-        password=hash_password(password)
+        email=data["email"],
+        password=hash_password(data["password"])
     )
 
     db.add(user)
     db.commit()
-    db.refresh(user)
     db.close()
 
-    return {"status": "success", "user_id": user.id}
+    return {"status": "registered"}
 
 # 🔐 LOGIN
 @app.post("/login")
@@ -140,30 +115,6 @@ def login(data: dict):
 
     db.close()
     return {"status": "success", "user_id": user.id}
-
-# 🔐 RESET PASSWORD
-@app.post("/reset-password")
-def reset_password(data: dict = Body(...)):
-
-    email = data["email"]
-    otp = data["otp"]
-    new_password = data["new_password"]
-
-    if OTP_STORE.get(email) != otp:
-        return {"status": "invalid_otp"}
-
-    db = SessionLocal()
-    user = db.query(User).filter(User.email == email).first()
-
-    if not user:
-        db.close()
-        return {"status": "user_not_found"}
-
-    user.password = hash_password(new_password)
-    db.commit()
-    db.close()
-
-    return {"status": "password_updated"}
 
 # 💳 CREATE ORDER
 @app.post("/create-order")
