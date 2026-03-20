@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Header
+from fastapi import FastAPI, UploadFile, File, Header, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import razorpay
@@ -52,6 +52,9 @@ RAZORPAY_SECRET = os.getenv("BzbxKlVdnAxDTLAX47p0Qae4")
 
 client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_SECRET))
 
+# ---------------- OTP STORE ----------------
+OTP_STORE = {}
+
 # ---------------- FUNCTIONS ----------------
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -81,26 +84,48 @@ def create_pdf(text):
 def home():
     return {"status": "Pro SaaS Running 🚀"}
 
-# 🔐 REGISTER
-@app.post("/register")
-def register(data: dict):
+# 🔐 SEND OTP
+@app.post("/send-otp")
+def send_otp(data: dict = Body(...)):
+
+    email = data["email"]
+    otp = str(random.randint(1000, 9999))
+
+    OTP_STORE[email] = otp
+
+    print(f"OTP for {email}: {otp}")
+
+    return {"status": "otp_sent"}
+
+# 🔐 REGISTER WITH OTP
+@app.post("/verify-otp-register")
+def verify_otp_register(data: dict = Body(...)):
+
+    email = data["email"]
+    otp = data["otp"]
+    password = data["password"]
+
+    if OTP_STORE.get(email) != otp:
+        return {"status": "invalid_otp"}
+
     db = SessionLocal()
 
-    existing = db.query(User).filter(User.email == data["email"]).first()
+    existing = db.query(User).filter(User.email == email).first()
     if existing:
         db.close()
         return {"status": "user_exists"}
 
     user = User(
-        email=data["email"],
-        password=hash_password(data["password"])
+        email=email,
+        password=hash_password(password)
     )
 
     db.add(user)
     db.commit()
+    db.refresh(user)
     db.close()
 
-    return {"status": "registered"}
+    return {"status": "success", "user_id": user.id}
 
 # 🔐 LOGIN
 @app.post("/login")
@@ -116,18 +141,39 @@ def login(data: dict):
     db.close()
     return {"status": "success", "user_id": user.id}
 
+# 🔐 RESET PASSWORD
+@app.post("/reset-password")
+def reset_password(data: dict = Body(...)):
+
+    email = data["email"]
+    otp = data["otp"]
+    new_password = data["new_password"]
+
+    if OTP_STORE.get(email) != otp:
+        return {"status": "invalid_otp"}
+
+    db = SessionLocal()
+    user = db.query(User).filter(User.email == email).first()
+
+    if not user:
+        db.close()
+        return {"status": "user_not_found"}
+
+    user.password = hash_password(new_password)
+    db.commit()
+    db.close()
+
+    return {"status": "password_updated"}
+
 # 💳 CREATE ORDER
 @app.post("/create-order")
 def create_order():
-    try:
-        order = client.order.create({
-            "amount": 2900,
-            "currency": "INR",
-            "payment_capture": 1
-        })
-        return order
-    except Exception as e:
-        return {"error": str(e)}
+    order = client.order.create({
+        "amount": 2900,
+        "currency": "INR",
+        "payment_capture": 1
+    })
+    return order
 
 # 💰 VERIFY PAYMENT
 @app.post("/verify-payment")
@@ -152,7 +198,7 @@ async def verify_payment(data: dict):
     except Exception as e:
         return {"status": "failed", "error": str(e)}
 
-# 📤 UPLOAD + PDF
+# 📤 UPLOAD
 @app.post("/upload")
 async def upload(file: UploadFile = File(...), user_id: int = Header(None)):
 
@@ -180,7 +226,6 @@ SHORT NOTES:
 REVISION POINTS:
 - Key topics revise karo
 - Important definitions yaad karo
-- Diagrams practice karo
 """
 
     pdf = create_pdf(output)
@@ -191,17 +236,12 @@ REVISION POINTS:
         headers={"Content-Disposition": "attachment; filename=notes.pdf"}
     )
 
-# 📊 ADMIN DASHBOARD
+# 📊 ADMIN
 @app.get("/admin/stats")
 def admin_stats():
     db = SessionLocal()
 
-    total_users = db.query(User).count()
-    total_paid = db.query(Token).count()
-
-    db.close()
-
     return {
-        "total_users": total_users,
-        "paid_users": total_paid
+        "total_users": db.query(User).count(),
+        "paid_users": db.query(Token).count()
     }

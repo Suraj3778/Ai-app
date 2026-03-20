@@ -23,6 +23,15 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
 
+        h2 {
+            margin-bottom: 5px;
+        }
+
+        p {
+            color: gray;
+            font-size: 14px;
+        }
+
         input, button {
             width: 100%;
             padding: 12px;
@@ -56,8 +65,9 @@
 <body>
 
 <div class="card">
+
     <h2>📚 AI Study Tool</h2>
-    <p>Exam-ready notes in seconds</p>
+    <p>Exam-ready notes instantly</p>
 
     <input type="file" id="file">
 
@@ -65,15 +75,19 @@
 
     <button class="pay" onclick="payNow()">💳 Unlock (₹29)</button>
 
-    <button onclick="login()">Login</button>
+    <button onclick="sendOTP()">Send OTP</button>
     <button onclick="register()">Register</button>
+    <button onclick="login()">Login</button>
+    <button onclick="forgotPassword()">Forgot Password</button>
 
-    <div class="small">⚡ Instant | 🎯 Smart Notes</div>
+    <div class="small">⚡ AI Powered | 🎯 Exam Focused</div>
+
 </div>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
+
 const BASE_URL = "https://ai-app-production-170c.up.railway.app";
 
 // -------- USER STORAGE --------
@@ -85,24 +99,42 @@ function getUser() {
     return localStorage.getItem("user_id");
 }
 
+// -------- SEND OTP --------
+async function sendOTP() {
+
+    let email = prompt("Enter Email");
+
+    localStorage.setItem("email", email);
+
+    await fetch(BASE_URL + "/send-otp", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({email})
+    });
+
+    alert("OTP sent (check backend console)");
+}
+
 // -------- REGISTER --------
 async function register() {
 
-    let email = prompt("Enter Email");
-    let password = prompt("Enter Password");
+    let email = localStorage.getItem("email");
+    let otp = prompt("Enter OTP");
+    let password = prompt("Create Password");
 
-    let res = await fetch(BASE_URL + "/register", {
+    let res = await fetch(BASE_URL + "/verify-otp-register", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({email, password})
+        body: JSON.stringify({email, otp, password})
     });
 
     let data = await res.json();
 
-    if (data.status === "registered") {
-        alert("Registered! Now login");
+    if (data.status === "success") {
+        saveUser(data.user_id);
+        alert("Registered & Logged In");
     } else {
-        alert("User already exists");
+        alert("Error: " + data.status);
     }
 }
 
@@ -125,6 +157,40 @@ async function login() {
         alert("Login Success");
     } else {
         alert("Login Failed");
+    }
+}
+
+// -------- FORGOT PASSWORD --------
+async function forgotPassword() {
+
+    let email = prompt("Enter Email");
+    localStorage.setItem("email", email);
+
+    await fetch(BASE_URL + "/send-otp", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({email})
+    });
+
+    let otp = prompt("Enter OTP");
+    let newPass = prompt("New Password");
+
+    let res = await fetch(BASE_URL + "/reset-password", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            email,
+            otp,
+            new_password: newPass
+        })
+    });
+
+    let data = await res.json();
+
+    if (data.status === "password_updated") {
+        alert("Password Updated");
+    } else {
+        alert("Error");
     }
 }
 
@@ -159,6 +225,7 @@ async function upload() {
     let blob = await res.blob();
 
     let url = window.URL.createObjectURL(blob);
+
     let a = document.createElement("a");
     a.href = url;
     a.download = "notes.pdf";
@@ -205,6 +272,7 @@ async function payNow() {
     var rzp = new Razorpay(options);
     rzp.open();
 }
+
 </script>
 
 </body>
